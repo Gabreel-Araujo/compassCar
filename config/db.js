@@ -1,7 +1,7 @@
-const mysql = require('mysql2')
+const mysql = require('mysql')
 
 const conection = mysql.createConnection({
-    host: 'localhot',
+    host: 'localhost',
     user: 'root',
     password: 'admin',
     database: 'compasscar'
