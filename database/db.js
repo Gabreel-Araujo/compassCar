@@ -1,20 +1,12 @@
-const mysql = require('mysql')
+const mysql = require('mysql2/promise');
 
-const conection = mysql.createConnection({
+const conn = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: 'admin',
+    password: "admin",
     database: 'compasscar'
-})
+});
 
+console.log('conectado ao banco de dados');
 
-conection.connect((err)=>{
-   if(err){
-    console.log(err)
-   }
-
-   console.log("conexao com o banco de dados estabelecida");
-
-})
-
-module.exports = conection;
+module.exports = conn;
