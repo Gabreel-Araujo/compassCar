@@ -35,12 +35,8 @@ async function createCar(req,res){
 
 
 async function deleteCar(req, res) {
-    const { id } = req.params;
-
-    if (!id) {
-        return res.status(400).json({ message: 'ID is required' });
-    }
-    console.log('ID recebido:', id);
+    const {id } = req.params;
+   
     const result = await carModel.deleteCar(id);
 
     if (result.affectedRows > 0) {
