@@ -18,9 +18,6 @@ async function createCar(brand,model,year){
    
     
     }
-    
-
-
     async function addItems(idCar, items) {
         const sql = "INSERT INTO cars_items (name, car_id) VALUES (?, ?)";
         
@@ -31,10 +28,19 @@ async function createCar(brand,model,year){
     }
 
 
+    async function deleteCar(id) {
+        const sql = 'DELETE FROM cars WHERE id = ?';
+        const [result] = await conn.query(sql, [id]); 
+        console.log('Resultado da query:', result); 
+        return result;
+    }
+
+
 module.exports = {
     createCar,
     carsExists,
-    addItems
+    addItems,
+    deleteCar
 }
 
     

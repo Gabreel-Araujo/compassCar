@@ -3,7 +3,6 @@ const conn = require('../database/db');
 const carModel = require('../model/carModel')
 
 async function createCar(req,res){
-   
     const { brand, model, year, items } = req.body;
 
     if(!brand || !model|| !year || !Array.isArray(items) || items.length == 0 ){
@@ -20,8 +19,6 @@ async function createCar(req,res){
         return res.status(409).json({ error: "there is already a car with this data" });
     }
 
-    
-
     const itemsUnique = [...new Set(items)];
 
     try{
@@ -33,10 +30,31 @@ async function createCar(req,res){
         console.error('Erro ao criar carro:', err.message);
         return res.status(500).json({ error: 'Erro interno do servidor' });
     }
-
 }
 
+
+
+async function deleteCar(req, res) {
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ message: 'ID is required' });
+    }
+    console.log('ID recebido:', id);
+    const result = await carModel.deleteCar(id);
+
+    if (result.affectedRows > 0) {
+        res.status(204).send(); 
+    } else {
+        res.status(404).json({ message: 'Car not found' });
+    }
+}
+
+
+
+
 module.exports = {
-    createCar
+    createCar,
+    deleteCar
 };
 
