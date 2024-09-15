@@ -4,6 +4,7 @@ const app = express();
 const db = require('./database/db');
 const routesCar = require('./routes/routesCar')
 
+
 app.use(express.json());
 app.use('/', routesCar)
 
