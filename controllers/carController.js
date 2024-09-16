@@ -24,13 +24,14 @@ async function createCar(req,res){
     if(year < 2015 || year > fullYear){
         return res.status(400).json({message: "year should be between 2015 and 2025"});
     }
-
     if(await carModel.carsExists(brand,model,year)){
         return res.status(409).json({ error: "there is already a car with this data" });
     }
 
     const itemsUnique = [...new Set(items)];
-
+    if (itemsUnique.length === 0) {
+        return res.status(400).json({ error: 'Items is required' });
+    }
     try{
         const idCar = await carModel.createCar(brand,model,year);
         await carModel.addItems(idCar,itemsUnique);
@@ -42,50 +43,49 @@ async function createCar(req,res){
     }
 }
 
-
 async function getCar(req, res) {
     
-    try {
+try {
         
-        const [rows] = await conn.execute('SELECT COUNT(*) AS count FROM cars');
-        const count = rows[0].count;
-        
-        const { page = 1 } = req.query;
-        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 5, 1), 10); 
-        const offset = (page - 1) * limit;
+    const [rows] = await conn.execute('SELECT COUNT(*) AS count FROM cars');
+    const count = rows[0].count;
+    
+    const { page = 1 } = req.query;
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 5, 1), 10); 
+    const offset = (page - 1) * limit;
 
-        let lastPage = 1;
+    let lastPage = 1;
 
-        if (count !== 0) {
-            lastPage = Math.ceil(count / limit);
-        } else {
-            return res.status(204).send();
-        }
-
-        const cars = await carModel.getPaginatedCars(limit, offset);
-        //queryParams model/brand
-        const {brand,model,year} = req.query;
-
-        if(brand || model || year){
-
-            const result = await carModel.getCarParams(brand,model,year);
-            
-            if(result.length === 0){
-               return res.status(204).json(result);
-            }
-            return res.status(200).json(result);
-        }
-        
-        res.status(200).json({
-            count,
-            pages: lastPage,
-            data: cars
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
+    if (count !== 0) {
+        lastPage = Math.ceil(count / limit);
+    } else {
+        return res.status(204).send();
     }
+
+    const cars = await carModel.getPaginatedCars(limit, offset);
+    //queryParams model/brand
+    const {brand,model,year} = req.query;
+
+    if(brand || model || year){
+
+        const result = await carModel.getCarParams(brand,model,year);
+        
+        if(result.length === 0){
+            return res.status(204).json(result);
+        }
+        return res.status(200).json(result);
+    }
+    
+    res.status(200).json({
+        count,
+        pages: lastPage,
+        data: cars
+    });
+
+} catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+}
 }
 
 async function getCarById(req,res){
@@ -95,8 +95,43 @@ async function getCarById(req,res){
             res.status(200).json(result);
         }else{
             res.status(404).json({message: "car not found"})
+        } 
+}
+
+async function updateCar(req, res){
+try{
+    const {brand,model,year,items} = req.body;
+    const {id} = req.params;
+
+    const fullYear = new Date().getFullYear();
+
+    if(year < 2015 || year > fullYear){
+        return res.status(400).json({message: "year should be between 2015 and 2025"});
+    }
+
+    if(brand, model, year){
+        if(await carModel.carsExists(brand,model,year)){
+            return res.status(409).json({ error: "there is already a car with this data" });
         }
-  
+    }
+
+    if (id||brand || model || year) {
+        await carModel.updateCar(id, brand, model, year);
+        res.status(204).send();
+    }
+    
+    if(items && Array.isArray(items)){
+
+        const itemsUnique =[...new Set(items)];
+        
+        await carModel.updateItems(id,itemsUnique);
+    }
+
+}catch(err){
+    res.status(500).send({message: "internal server error."})
+    console.log(err)
+}
+
 }
 
 async function deleteCar(req, res) {
@@ -116,6 +151,7 @@ module.exports = {
     deleteCar,
     getCar,
     getCarById,
+    updateCar
   
 };
 
